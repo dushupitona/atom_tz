@@ -29,7 +29,16 @@ class OrganizationGenerateWasteModel(models.Model):
 
     def __str__(self):
         return f'{self.organization} | {self.waste_type} | {self.value}'
-    
+
+
+class OrganizationSendWasteModel(models.Model):
+    organization = models.ForeignKey(to=OrganizationModel, on_delete=models.CASCADE)
+    waste_type = models.ForeignKey(to=WasteTypeModel, on_delete=models.CASCADE)
+    value = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f'{self.organization} | {self.waste_type} | {self.value}'
+
 
 class StorageWasteTypeModel(models.Model):
     storage = models.ForeignKey(to=StorageModel, on_delete=models.CASCADE)

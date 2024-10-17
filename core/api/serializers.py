@@ -1,13 +1,22 @@
 from rest_framework import serializers
 
-from api.models import WasteTypeModel, StorageModel, StorageWasteTypeModel
+from api.models import WasteTypeModel, StorageModel, StorageWasteTypeModel, OrganizationModel, \
+OrganizationGenerateWasteModel
 
+#  <--------------- Waste --------------->
 
 class WasteTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = WasteTypeModel
-        fields = ['name']
+        fields = ['id', 'name']
 
+
+class WasteTypeIDSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WasteTypeModel
+        fields = ['id']
+
+#  <--------------- Storage --------------->
 
 class StorageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -33,3 +42,33 @@ class StorageSerializer(serializers.ModelSerializer):
     def get_waste_type(self, obj):
         waste_type = StorageWasteTypeModel.objects.filter(storage=obj)
         return StorageWasteTypeSerializer(waste_type, many=True).data
+    
+
+#  <--------------- Organization --------------->
+
+class OrganizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrganizationModel
+        fields = ['id', 'name']
+
+class WasteValueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrganizationGenerateWasteModel
+        fields = ['value']
+
+
+class GenerateWasteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrganizationGenerateWasteModel
+        fields = ['waste_type', 'value']
+        
+
+class WasteOperationSerializer(serializers.Serializer):
+    organization = serializers.IntegerField()
+    wastes = GenerateWasteSerializer(many=True)
+
+    def validate_organization(self, value):
+        org = OrganizationModel.objects.filter(id=value)
+        if org.exists():
+            return org
+        raise serializers.ValidationError('Invalid organization id.')
