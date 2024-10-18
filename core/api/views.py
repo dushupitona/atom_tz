@@ -1,69 +1,255 @@
-from rest_framework.generics import RetrieveAPIView
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.db.models import Sum
+from rest_framework import status
 
-from api.models import StorageModel, WasteTypeModel, OrganizationGenerateWasteModel, OrganizationStorage,\
-StorageWasteTypeModel
-from api.serializers import StorageSerializer, WasteOperationSerializer
+from api.models import OrganizationWasteValuesModel, OrganizationModel, StorageModel, StorageWasteTypeModel, WasteTypeModel
+from api.serializers import OrgIDSerializer, OrgNameSerializer, StorageNameSerializer, StorageIDSerializer,\
+WasteTypeIDSerializer, WasteTypeNameSerializer
 
 
-class StorageDetailAPIView(RetrieveAPIView):
+#  <--------------- Organization --------------->
+class OrgListAPIView(ListCreateAPIView):
+    queryset = OrganizationModel.objects.all()
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return OrgIDSerializer
+        elif self.request.method == 'POST':
+            return OrgNameSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        out_list = [item['id'] for item in serializer.data]
+        return Response(out_list, status=status.HTTP_200_OK)
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response()
+
+
+class OrgAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = OrganizationModel.objects.all()
+    lookup_field = 'id'
+    serializer_class = OrgNameSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+        data['waste'] = {}
+        org_wastes = OrganizationWasteValuesModel.objects.select_related('waste_type').filter(organization=self.kwargs.get('id'))
+        for waste in org_wastes:
+            data['waste'][waste.waste_type.id] = waste.value
+        return Response(data)
+    
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object(), data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response()
+    
+    def destroy(self, request, *args, **kwargs):
+        self.perform_destroy(self.get_object())
+        return Response()
+
+#  <--------------- Storage --------------->
+class StorageListAPIView(ListCreateAPIView):
     queryset = StorageModel.objects.all()
-    serializer_class = StorageSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return StorageIDSerializer
+        elif self.request.method == 'POST':
+            return StorageNameSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        out_list = [item['id'] for item in serializer.data]
+        return Response(out_list, status=status.HTTP_200_OK)
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response()
 
 
-class StorageListAPIView(APIView):
-    def get(self, request):
-        my_objects = WasteTypeModel.objects.all()
-        ids = [obj.id for obj in my_objects]
-        return Response(ids)
+class StorageAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = StorageModel.objects.all()
+    lookup_field = 'id'
+    serializer_class = OrgNameSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+        data['waste_capacity'] = {}
+        org_wastes = StorageWasteTypeModel.objects.select_related('waste_type').filter(storage=self.kwargs.get('id'))
+        for waste in org_wastes:
+            data['waste_capacity'][waste.waste_type.id] = waste.capacity
+        return Response(data)
+    
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object(), data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response()
+    
+    def destroy(self, request, *args, **kwargs):
+        self.perform_destroy(self.get_object())
+        return Response()
+
+#  <--------------- Waste --------------->
+class WasteTypeListAPIView(ListCreateAPIView):
+    queryset = WasteTypeModel.objects.all()
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return WasteTypeIDSerializer
+        elif self.request.method == 'POST':
+            return WasteTypeNameSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        out_list = [item['id'] for item in serializer.data]
+        return Response(out_list, status=status.HTTP_200_OK)
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response()
+
+
+class WasteAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = WasteTypeModel.objects.all()
+    lookup_field = 'id'
+    serializer_class = WasteTypeNameSerializer
+
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object(), data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response()
+    
+    def destroy(self, request, *args, **kwargs):
+        self.perform_destroy(self.get_object())
+        return Response()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# class StorageDetailAPIView(RetrieveAPIView):
+#     queryset = StorageModel.objects.all()
+#     serializer_class = StorageSerializer
+
+
+# class StorageListAPIView(APIView):
+#     def get(self, request):
+#         my_objects = WasteTypeModel.objects.all()
+#         ids = [obj.id for obj in my_objects]
+#         return Response(ids)
     
 
-class GenerateWasteAPIView(APIView):
-    def post(self, request):
-        serializer = WasteOperationSerializer(data=request.data) # из заголовка брать id компании
-        serializer.is_valid()
-        print(serializer.errors) if serializer.errors else None
-        valid_data = serializer.validated_data
-        print(valid_data)
+# class GenerateWasteAPIView(APIView):
+#     def post(self, request):
+#         # serializer = WasteOperationSerializer(data=request.data) # из заголовка брать id компании
+#         # serializer.is_valid()
+#         # print(serializer.errors) if serializer.errors else None
+#         # valid_data = serializer.validated_data
+#         # print(valid_data)
 
-        for waste in valid_data['wastes']:
-            OrganizationGenerateWasteModel.objects.create(
-                organization=valid_data['organization'].first(),
-                waste_type=waste['waste_type'],
-                value=waste['value']
-            )
+#         # for waste in valid_data['wastes']:
+#         #     OrganizationGenerateWasteModel.objects.create(
+#         #         organization=valid_data['organization'].first(),
+#         #         waste_type=waste['waste_type'],
+#         #         value=waste['value']
+#         #     )
 
-        return Response(status=201)
+#         return Response(status=201)
     
 
-class SendWasteAPIView(APIView):
-        def post(self, request):
-            serializer = WasteOperationSerializer(data=request.data) # из заголовка брать id компании
-            serializer.is_valid()
-            print(serializer.errors) if serializer.errors else None
-            valid_data = serializer.validated_data
+# class SendWasteAPIView(APIView):
+#         def post(self, request):
+#             serializer = WasteOperationSerializer(data=request.data) # из заголовка брать id компании
+#             serializer.is_valid()
+#             print(serializer.errors) if serializer.errors else None
+#             valid_data = serializer.validated_data
             
-            org = valid_data['organization']
-            wastes = valid_data['wastes']
-            print(wastes)
+#             org = valid_data['organization']
+#             wastes = valid_data['wastes']
+#             print('------------------ Serializers requests ------------------')
 
-            storages = OrganizationStorage.objects.select_related('organization', 'storage').filter(organization=org.first()).order_by('interval')
+#             waste_values = {item['waste_type']: item['value'] for item in wastes}
 
-            for storage in storages:
-                storage_wastes = StorageWasteTypeModel.objects.filter(storage=storage.storage)
-                print(f'Storage: {storage.storage}')
-                for waste in storage_wastes:
-                    for sended_waste in wastes:
-                        if sended_waste['waste_type'] == waste.waste_type:
-                            if sended_waste['value'] > 0:
-                                eat = sended_waste['value'] - waste.capacity
-                                if eat < 0:
-                                    sended_waste['value'] = 0
-                                else:
-                                    sended_waste['value'] = eat
+#             print(waste_values)
+            
+#             organization_storages = OrganizationStorage.objects.select_related('storage', 'organization').order_by('interval').filter(organization=1)
+            
+#             for storage in organization_storages:
+#                 storage_wastes = StorageWasteTypeModel.objects.select_related('waste_type').filter(storage=storage.storage)
+#                 for waste in storage_wastes:
+#                     if waste.waste_type in waste_values.keys():
+#                         need_eat = waste_values[waste.waste_type]
+#                         if need_eat > 0:
+#                             eat = need_eat - waste.capacity
+#                             if eat < 0:
+#                                 waste_values[waste.waste_type] = 0
+#                             else:
+#                                 waste_values[waste.waste_type] = eat
 
-            print(wastes)
+#             print(waste_values)
+#             return Response(status=201)
+        
+
+    
+# class TotalWasteOrganizationAPIView(APIView):
+#     def get(self, request):
+#         # serializer = OrganizationIDSerializer(data=self.request.data)
+#         # if serializer.is_valid():
+#         #     org = serializer.validated_data.get('organization')
+#         #     queryset = OrganizationGenerateWasteModel.objects\
+#         #         .values('waste_type').annotate(total=Sum('value')).order_by('waste_type').filter(organization=org.first())
+#         #     return Response(queryset)
+        
+#         # print(serializer.errors)
+#         return Response('Invalid id.')
 
 
-            return Response(status=201)
+
+
+#     # def post(self, request):
+#     #     a = OrganizationGenerateWasteModel.objects.filter(organization=1).values('waste_type').annotate(total=Sum('value')).order_by('waste_type')
+#     #     print(a)
+
+#     #     return Response()
