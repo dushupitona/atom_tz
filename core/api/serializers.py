@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from api.models import WasteTypeModel, StorageModel, StorageWasteTypeModel, OrganizationModel, \
-OrganizationWasteOperationModel
+from api.models import WasteTypeModel, StorageModel, StorageWasteTypeModel, OrganizationModel,\
+    OrganizationStorageModel
 
 #  <--------------- Waste --------------->
 class WasteTypeIDSerializer(serializers.ModelSerializer):
@@ -50,7 +50,6 @@ class StorageNameSerializer(serializers.ModelSerializer):
     
 
 #  <--------------- Organization --------------->
-
 class OrgIDSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrganizationModel
@@ -63,7 +62,17 @@ class OrgNameSerializer(serializers.ModelSerializer):
         fields = ['name']
 
 
-        
+#  <--------------- Org Storage --------------->
+class OrgStorageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrganizationStorageModel
+        fields = ['organization', 'storage', 'interval']
+
+
+class OrgStorageIntervalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrganizationStorageModel
+        fields = ['interval']
 
 
 # class OrganizationIDSerializer(serializers.Serializer):

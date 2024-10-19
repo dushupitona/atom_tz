@@ -5,10 +5,41 @@ from api.models import WasteTypeModel, OrganizationModel, StorageModel, \
       OrganizationWasteValuesModel
 
 
-admin.site.register(WasteTypeModel)
-admin.site.register(OrganizationModel)
-admin.site.register(StorageModel)
+class OrgAdmin(admin.ModelAdmin):
+    readonly_fields = ('id',)
+    fields = ('id', 'name')
+
+
+class WasteTypeAdmin(admin.ModelAdmin):
+    readonly_fields = ('id',)
+    fields = ('id', 'name')
+
+
+class StorageAdmin(admin.ModelAdmin):
+    readonly_fields = ('id',)
+    fields = ('id', 'name')
+
+
+class StorageWasteAdmin(admin.ModelAdmin):
+    readonly_fields = ('id',)
+    fields = ('id', 'storage', 'waste_type', 'capacity')
+
+
+class OrgWasteValuesAdmin(admin.ModelAdmin):
+    readonly_fields = ('id',)
+    fields = ('id', 'organization', 'waste_type', 'value')
+
+
+class OrgStorageAdmin(admin.ModelAdmin):
+    readonly_fields = ('id',)
+    fields = ('id', 'organization', 'storage', 'interval')
+
+
+
+admin.site.register(WasteTypeModel, WasteTypeAdmin)
+admin.site.register(OrganizationModel, OrgAdmin)
+admin.site.register(StorageModel, StorageAdmin)
 admin.site.register(OrganizationWasteOperationModel)
-admin.site.register(StorageWasteTypeModel)
-admin.site.register(OrganizationStorageModel)
-admin.site.register(OrganizationWasteValuesModel)
+admin.site.register(StorageWasteTypeModel, WasteTypeAdmin)
+admin.site.register(OrganizationStorageModel, OrgStorageAdmin)
+admin.site.register(OrganizationWasteValuesModel, OrgWasteValuesAdmin)

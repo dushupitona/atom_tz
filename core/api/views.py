@@ -1,12 +1,14 @@
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView, GenericAPIView,\
+    RetrieveDestroyAPIView, get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db.models import Sum
 from rest_framework import status
 
-from api.models import OrganizationWasteValuesModel, OrganizationModel, StorageModel, StorageWasteTypeModel, WasteTypeModel
+from api.models import OrganizationWasteValuesModel, OrganizationModel, StorageModel, StorageWasteTypeModel,\
+    WasteTypeModel, OrganizationStorageModel
 from api.serializers import OrgIDSerializer, OrgNameSerializer, StorageNameSerializer, StorageIDSerializer,\
-WasteTypeIDSerializer, WasteTypeNameSerializer
+    WasteTypeIDSerializer, WasteTypeNameSerializer, OrgStorageSerializer, OrgStorageIntervalSerializer
 
 
 #  <--------------- Organization --------------->
@@ -144,12 +146,54 @@ class WasteAPIView(RetrieveUpdateDestroyAPIView):
         return Response()
 
 
+#  <--------------- Org & Storage --------------->
+class OrgStorageListAPIView(GenericAPIView):
+    queryset = OrganizationStorageModel.objects.all()
+    serializer_class = OrgStorageSerializer
+
+    def get(self, request, *args, **kwargs):
+        org_storages = OrganizationStorageModel.objects.select_related('storage').filter(organization=self.kwargs.get('id'))
+        storage_list = [storage.id for storage in org_storages]
+        return Response(status=status.HTTP_200_OK, data=storage_list)
+    
+    def post(self, request, *args, **kwargs):
+        request.data['organization'] = self.kwargs.get('id')
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response()
+
+
+class OrgStorageAPIView(APIView):
+    serializer_class = OrgStorageIntervalSerializer
+
+    def get(self, request, *args, **kwargs):
+        org_id = self.kwargs.get('org_id')
+        storage_id = self.kwargs.get('storage_id')
+        org_storage = get_object_or_404(OrganizationStorageModel, organization=org_id, storage=storage_id)
+        serializer = self.serializer_class(instance=org_storage)
+        return Response(serializer.data)
+    
+    def put(self, request, *args, **kwargs):
+        org_id = self.kwargs.get('org_id')
+        storage_id = self.kwargs.get('storage_id')
+        org_storage = get_object_or_404(OrganizationStorageModel, organization=org_id, storage=storage_id)
+
+        serializer = self.serializer_class(instance=org_storage, data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+        return Response()
+    
+    def delete(self, request, *args, **kwargs):
+        org_id = self.kwargs.get('org_id')
+        storage_id = self.kwargs.get('storage_id')
+        org_storage = get_object_or_404(OrganizationStorageModel, organization=org_id, storage=storage_id)
+        org_storage.delete()
+        return Response()
 
 
 
-
-
-
+    
 
 
 
