@@ -1,14 +1,12 @@
 from rest_framework import serializers
 
 from api.models import WasteTypeModel, StorageModel, StorageWasteTypeModel, OrganizationModel,\
-    OrganizationStorageModel
+    OrganizationStorageModel, OrganizationWasteValuesModel
 
 #  <--------------- Waste --------------->
-class WasteTypeIDSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = WasteTypeModel
-        fields = ['id']
-
+class WasteTypeListSerializer(serializers.BaseSerializer):
+    def to_representation(self, instance):
+            return [obj.id for obj in instance]
 
 class WasteTypeNameSerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,10 +15,9 @@ class WasteTypeNameSerializer(serializers.ModelSerializer):
 
 
 #  <--------------- Storage --------------->
-class StorageIDSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = StorageModel
-        fields = ['id']
+class StorageListSerializer(serializers.BaseSerializer):
+    def to_representation(self, instance):
+            return [obj.id for obj in instance]
 
 
 class StorageNameSerializer(serializers.ModelSerializer):
@@ -50,16 +47,28 @@ class StorageNameSerializer(serializers.ModelSerializer):
     
 
 #  <--------------- Organization --------------->
-class OrgIDSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OrganizationModel
-        fields = ['id']
+class OrgListSerializer(serializers.BaseSerializer):
+    def to_representation(self, instance):
+            return [obj.id for obj in instance]
+    
 
+class OrgCreateUpdateSerializer(serializers.ModelSerializer):
 
-class OrgNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrganizationModel
         fields = ['name']
+
+
+class OrgRetrieveSerializer(serializers.ModelSerializer):
+    waste = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OrganizationModel
+        fields = ['name', 'waste']
+
+    def get_waste(self, obj):
+        org_wastes = OrganizationWasteValuesModel.objects.select_related('waste_type').filter(organization=obj.id)
+        return {waste.waste_type.id: waste.value for waste in org_wastes}
 
 
 #  <--------------- Org Storage --------------->

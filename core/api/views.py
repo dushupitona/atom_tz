@@ -8,9 +8,9 @@ from rest_framework import status
 from api.models import OrganizationWasteValuesModel, OrganizationModel, StorageModel, StorageWasteTypeModel,\
     WasteTypeModel, OrganizationStorageModel
 
-from api.serializers import OrgIDSerializer, OrgNameSerializer, StorageNameSerializer, StorageIDSerializer,\
-    WasteTypeIDSerializer, WasteTypeNameSerializer, OrgStorageSerializer, OrgStorageIntervalSerializer, \
-    StorageWasteSerializer
+from api.serializers import OrgListSerializer, OrgRetrieveSerializer, StorageNameSerializer, StorageListSerializer,\
+    WasteTypeListSerializer, WasteTypeNameSerializer, OrgStorageSerializer, OrgStorageIntervalSerializer, \
+    StorageWasteSerializer, OrgCreateUpdateSerializer
 
 
 #  <--------------- Organization --------------->
@@ -19,47 +19,41 @@ class OrgListAPIView(ListCreateAPIView):
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
-            return OrgIDSerializer
+            return OrgListSerializer
         elif self.request.method == 'POST':
-            return OrgNameSerializer
+            return OrgCreateUpdateSerializer
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        out_list = [item['id'] for item in serializer.data]
-        return Response(out_list, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(queryset)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        return Response()
+        return Response(status=status.HTTP_201_CREATED)
 
 
 class OrgAPIView(RetrieveUpdateDestroyAPIView):
     queryset = OrganizationModel.objects.all()
     lookup_field = 'id'
-    serializer_class = OrgNameSerializer
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        data = serializer.data
-        data['waste'] = {}
-        org_wastes = OrganizationWasteValuesModel.objects.select_related('waste_type').filter(organization=self.kwargs.get('id'))
-        for waste in org_wastes:
-            data['waste'][waste.waste_type.id] = waste.value
-        return Response(data)
-    
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return OrgRetrieveSerializer
+        elif self.request.method == 'PUT':
+            return OrgCreateUpdateSerializer
+
     def update(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_object(), data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        return Response()
+        return Response(status=status.HTTP_201_CREATED)
     
     def destroy(self, request, *args, **kwargs):
         self.perform_destroy(self.get_object())
-        return Response()
+        return Response(status=status.HTTP_200_OK)
 
 #  <--------------- Storage --------------->
 class StorageListAPIView(ListCreateAPIView):
@@ -67,47 +61,49 @@ class StorageListAPIView(ListCreateAPIView):
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
-            return StorageIDSerializer
+            return StorageListSerializer
         elif self.request.method == 'POST':
             return StorageNameSerializer
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        out_list = [item['id'] for item in serializer.data]
-        return Response(out_list, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(queryset)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        return Response()
+        return Response(status=status.HTTP_201_CREATED)
 
 
 class StorageAPIView(RetrieveUpdateDestroyAPIView):
     queryset = StorageModel.objects.all()
     lookup_field = 'id'
-    serializer_class = OrgNameSerializer
+    serializer_class = StorageNameSerializer
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        data = serializer.data
-        data['waste_capacity'] = {}
-        org_wastes = StorageWasteTypeModel.objects.select_related('waste_type').filter(storage=self.kwargs.get('id'))
-        for waste in org_wastes:
-            data['waste_capacity'][waste.waste_type.id] = waste.capacity
-        return Response(data)
+    # def retrieve(self, request, *args, **kwargs):
+    #     instance = self.get_object()
+    #     serializer = self.get_serializer(instance)
+    #     data = serializer.data
+    #     data['waste_capacity'] = {}
+    #     org_wastes = StorageWasteTypeModel.objects.select_related('waste_type').filter(storage=self.kwargs.get('id'))
+    #     for waste in org_wastes:
+    #         data['waste_capacity'][waste.waste_type.id] = {
+    #             'max_capacity': waste.max_capacity,
+    #             'max_capacity': waste.current_capacity
+    #         }
+    #     return Response(data)
     
     def update(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_object(), data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        return Response()
+        return Response(status=status.HTTP_201_CREATED)
     
     def destroy(self, request, *args, **kwargs):
         self.perform_destroy(self.get_object())
-        return Response()
+        return Response(status=status.HTTP_200_OK)
 
 #  <--------------- Waste --------------->
 class WasteTypeListAPIView(ListCreateAPIView):
@@ -115,21 +111,20 @@ class WasteTypeListAPIView(ListCreateAPIView):
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
-            return WasteTypeIDSerializer
+            return WasteTypeListSerializer
         elif self.request.method == 'POST':
             return WasteTypeNameSerializer
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        out_list = [item['id'] for item in serializer.data]
-        return Response(out_list, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(queryset)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        return Response()
+        return Response(status=status.HTTP_201_CREATED)
 
 
 class WasteAPIView(RetrieveUpdateDestroyAPIView):
@@ -141,11 +136,11 @@ class WasteAPIView(RetrieveUpdateDestroyAPIView):
         serializer = self.get_serializer(self.get_object(), data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        return Response()
+        return Response(status=status.HTTP_201_CREATED)
     
     def destroy(self, request, *args, **kwargs):
         self.perform_destroy(self.get_object())
-        return Response()
+        return Response(status=status.HTTP_200_OK)
 
 
 #  <--------------- Org & Storage --------------->
@@ -209,7 +204,7 @@ class StorageWasteListAPIView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-        return Response()
+        return Response(status=status.HTTP_201_CREATED)
 
 
 # class OrgStorageAPIView(APIView):

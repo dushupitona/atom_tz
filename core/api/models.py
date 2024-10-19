@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models import Q, F
+from django.db.models.constraints import CheckConstraint
 
 #  <--------------- Waste --------------->
 
@@ -21,13 +23,21 @@ class StorageModel(models.Model):
 class StorageWasteTypeModel(models.Model):
     storage = models.ForeignKey(to=StorageModel, on_delete=models.CASCADE)
     waste_type = models.ForeignKey(to=WasteTypeModel, on_delete=models.CASCADE)
-    capacity = models.PositiveIntegerField()
+    max_capacity = models.PositiveIntegerField()
+    current_capacity = models.PositiveIntegerField(default=0)
 
     class Meta:
         unique_together = ('storage', 'waste_type')
+    
+        constraints = [
+            CheckConstraint(
+                check=Q(current_capacity__lte=F('max_capacity')),
+                name='check_capacity',
+            ),
+        ]
 
     def __str__(self):
-        return f'{self.storage} | {self.waste_type} | {self.capacity}'
+        return f'{self.storage} | {self.waste_type} | {self.current_capacity}'
 
 
 #  <--------------- Organization --------------->

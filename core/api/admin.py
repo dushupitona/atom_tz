@@ -22,7 +22,7 @@ class StorageAdmin(admin.ModelAdmin):
 
 class StorageWasteAdmin(admin.ModelAdmin):
     readonly_fields = ('id',)
-    fields = ('id', 'storage', 'waste_type', 'capacity')
+    fields = ('id', 'storage', 'waste_type', 'max_capacity', 'current_capacity')
 
 
 class OrgWasteValuesAdmin(admin.ModelAdmin):
