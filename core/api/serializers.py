@@ -75,6 +75,41 @@ class OrgStorageIntervalSerializer(serializers.ModelSerializer):
         fields = ['interval']
 
 
+
+#  <--------------- Storage Waste --------------->
+class StorageWasteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StorageWasteTypeModel
+        fields = ['storage', 'waste_type', 'capacity']
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # class OrganizationIDSerializer(serializers.Serializer):
 #     organization = serializers.IntegerField()
 
