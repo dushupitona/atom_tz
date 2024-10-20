@@ -3,7 +3,7 @@ from django.urls import path, include
 
 from api.views import OrgListAPIView, OrgAPIView, StorageListAPIView, StorageAPIView,\
     WasteAPIView, WasteTypeListAPIView, OrgStorageListAPIView, OrgStorageAPIView,\
-    OrgStorageListAPIView, StorageWasteListAPIView
+    OrgStorageListAPIView, StorageWasteListAPIView, StorageWasteAPIView
 
 
 app_name = 'api'
@@ -23,5 +23,5 @@ urlpatterns = [
     path('waste/<int:id>/', WasteAPIView.as_view(), name='waste_object'),
 
     path('storage/<int:id>/waste/', StorageWasteListAPIView.as_view(), name='storage_waste'),
-    # path('org/<int:org_id>/storage/<int:storage_id>/', OrgStorageAPIView.as_view()),
+    path('storage/<int:storage_id>/waste/<int:waste_id>/', StorageWasteAPIView.as_view(), name='storage_waste_object'),
 ]

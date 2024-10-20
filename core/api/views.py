@@ -10,7 +10,8 @@ from api.models import OrganizationWasteValuesModel, OrganizationModel, StorageM
 
 from api.serializers import OrgListSerializer, OrgRetrieveSerializer, StorageNameSerializer, StorageListSerializer,\
     WasteTypeListSerializer, WasteTypeNameSerializer, OrgStorageSerializer, OrgStorageIntervalSerializer, \
-    StorageWasteSerializer, OrgCreateUpdateSerializer, OrgStorageListSerializer, StorageWasteListSerializer
+    StorageWasteSerializer, OrgCreateUpdateSerializer, OrgStorageListSerializer, StorageWasteListSerializer,\
+    StorageCapasitiesSerializer
 
 
 #  <--------------- Organization --------------->
@@ -215,6 +216,36 @@ class StorageWasteListAPIView(GenericAPIView):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(status=status.HTTP_201_CREATED)
+
+
+class StorageWasteAPIView(APIView):
+    serializer_class = StorageCapasitiesSerializer
+
+    def get(self, request, *args, **kwargs):
+        storage_id = self.kwargs.get('storage_id')
+        waste_id = self.kwargs.get('waste_id')
+        storage_waste = get_object_or_404(StorageWasteTypeModel, storage=storage_id, waste_type=waste_id)
+        serializer = self.serializer_class(storage_waste)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+    
+    def put(self, request, *args, **kwargs):
+        storage_id = self.kwargs.get('storage_id')
+        waste_id = self.kwargs.get('waste_id')
+        storage_waste = get_object_or_404(StorageWasteTypeModel, storage=storage_id, waste_type=waste_id)
+
+        serializer = self.serializer_class(instance=storage_waste, data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(status=status.HTTP_201_CREATED)
+    
+    def delete(self, request, *args, **kwargs):
+        storage_id = self.kwargs.get('storage_id')
+        waste_id = self.kwargs.get('waste_id')
+        storage_waste = get_object_or_404(StorageWasteTypeModel, storage=storage_id, waste_type=waste_id)
+        storage_waste.delete()
+        return Response(status=status.HTTP_200_OK)
+    
+
 
 
 # class OrgStorageAPIView(APIView):

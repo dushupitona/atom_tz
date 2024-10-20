@@ -102,6 +102,12 @@ class StorageWasteSerializer(serializers.ModelSerializer):
         fields = ['storage', 'waste_type', 'max_capacity']
 
 
+class StorageCapasitiesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StorageWasteTypeModel
+        fields = ['max_capacity', 'current_capacity']
+
+
 
 
 
