@@ -274,22 +274,32 @@ class OrganizationWasteValuesAPIView(APIView):
         for storage in organization_storages:
             storage_wastes = StorageWasteTypeModel.objects.select_related('waste_type').filter(storage=storage.storage)
             for waste in storage_wastes:
-                if waste.waste_type.id in waste_values.keys():
+                print(f'name: {waste.waste_type.name} | curr: {waste.current_capacity} | max: {waste.max_capacity}')
+                waste_capacity = waste.max_capacity - waste.current_capacity
+                if waste.waste_type.id in waste_values.keys() and waste_capacity != 0:
                     need_eat = waste_values[waste.waste_type.id]
+                    print(f'Need eat: {need_eat}')
                     if need_eat > 0:
-                        eat = need_eat - waste.max_capacity - waste.current_capacity
-                        if eat < 0:
+                        print(f'Got: {waste.waste_type.name}')
+                        ate = need_eat - waste_capacity
+                        print(f'Ate: {ate}')
+                        if ate <= 0:
                             waste_values[waste.waste_type.id] = 0
                             value = 0
+                            capacity = need_eat
                         else:
-                            waste_values[waste.waste_type.id] = eat
-                            value = eat
+                            value = abs(ate)
+                            print(f'Остаток {value}')
+                            capacity = waste.max_capacity
 
+                        waste_values[waste.waste_type.id] = value
                         org_value = OrganizationWasteValuesModel.objects.get(organization=organization, waste_type=waste.waste_type)
-                        waste.current_capacity += abs(eat)
+                        waste.current_capacity = capacity
                         waste.save()
                         org_value.value = value
                         org_value.save()
+                print(f'name: {waste.waste_type.name} | curr: {waste.current_capacity} | max: {waste.max_capacity}')
+                print(waste_values)
         
         print(waste_values)
         return Response(status=201)
