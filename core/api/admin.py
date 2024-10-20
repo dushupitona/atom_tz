@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from api.models import WasteTypeModel, OrganizationModel, StorageModel, \
-      OrganizationWasteOperationModel, StorageWasteTypeModel, OrganizationStorageModel, \
+      StorageWasteTypeModel, OrganizationStorageModel, \
       OrganizationWasteValuesModel
 
 
@@ -39,7 +39,6 @@ class OrgStorageAdmin(admin.ModelAdmin):
 admin.site.register(WasteTypeModel, WasteTypeAdmin)
 admin.site.register(OrganizationModel, OrgAdmin)
 admin.site.register(StorageModel, StorageAdmin)
-admin.site.register(OrganizationWasteOperationModel)
 admin.site.register(StorageWasteTypeModel, StorageWasteAdmin)
 admin.site.register(OrganizationStorageModel, OrgStorageAdmin)
 admin.site.register(OrganizationWasteValuesModel, OrgWasteValuesAdmin)

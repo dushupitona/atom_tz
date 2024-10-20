@@ -1,17 +1,17 @@
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView, GenericAPIView,\
-    RetrieveDestroyAPIView, get_object_or_404
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView, GenericAPIView, get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.db.models import Sum
 from rest_framework import status
+from django.db.models import Sum
+from django.shortcuts import get_object_or_404
 
-from api.models import OrganizationWasteValuesModel, OrganizationModel, StorageModel, StorageWasteTypeModel,\
-    WasteTypeModel, OrganizationStorageModel
+from api.models import OrganizationModel, StorageModel, StorageWasteTypeModel, WasteTypeModel, OrganizationStorageModel,\
+    OrganizationWasteValuesModel, OrganizationWasteValuesModel
 
 from api.serializers import OrgListSerializer, OrgRetrieveSerializer, StorageNameSerializer, StorageListSerializer,\
     WasteTypeListSerializer, WasteTypeNameSerializer, OrgStorageSerializer, OrgStorageIntervalSerializer, \
     StorageWasteSerializer, OrgCreateUpdateSerializer, OrgStorageListSerializer, StorageWasteListSerializer,\
-    StorageCapasitiesSerializer
+    StorageCapasitiesSerializer, OrgWasteValuesSerilaizer
 
 
 #  <--------------- Organization --------------->
@@ -246,135 +246,50 @@ class StorageWasteAPIView(APIView):
         return Response(status=status.HTTP_200_OK)
     
 
+class OrganizationGenerateAPIView(APIView):
+    serializer_class = OrgWasteValuesSerilaizer
+    def post(self, request, *args, **kwargs):
+        request.data['organization'] = self.kwargs.get('id')
+        print(request.data)
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            data = serializer.validated_data
+            waste_value, created = OrganizationWasteValuesModel.objects.get_or_create(organization=data['organization'], waste_type=data['waste_type'], defaults={'value': data['value']})
+            if not created:
+                waste_value.value += data['value']
+                waste_value.save()
+            return Response(status=status.HTTP_200_OK)
+        print(serializer.errors)
 
 
-# class OrgStorageAPIView(APIView):
-#     serializer_class = OrgStorageIntervalSerializer
-
-#     def get(self, request, *args, **kwargs):
-#         org_id = self.kwargs.get('org_id')
-#         storage_id = self.kwargs.get('storage_id')
-#         org_storage = get_object_or_404(OrganizationStorageModel, organization=org_id, storage=storage_id)
-#         serializer = self.serializer_class(instance=org_storage)
-#         return Response(serializer.data)
-    
-#     def put(self, request, *args, **kwargs):
-#         org_id = self.kwargs.get('org_id')
-#         storage_id = self.kwargs.get('storage_id')
-#         org_storage = get_object_or_404(OrganizationStorageModel, organization=org_id, storage=storage_id)
-
-#         serializer = self.serializer_class(instance=org_storage, data=request.data, partial=True)
-#         if serializer.is_valid(raise_exception=True):
-#             serializer.save()
-#         return Response()
-    
-#     def delete(self, request, *args, **kwargs):
-#         org_id = self.kwargs.get('org_id')
-#         storage_id = self.kwargs.get('storage_id')
-#         org_storage = get_object_or_404(OrganizationStorageModel, organization=org_id, storage=storage_id)
-#         org_storage.delete()
-#         return Response()
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# class StorageDetailAPIView(RetrieveAPIView):
-#     queryset = StorageModel.objects.all()
-#     serializer_class = StorageSerializer
-
-
-# class StorageListAPIView(APIView):
-#     def get(self, request):
-#         my_objects = WasteTypeModel.objects.all()
-#         ids = [obj.id for obj in my_objects]
-#         return Response(ids)
-    
-
-# class GenerateWasteAPIView(APIView):
-#     def post(self, request):
-#         # serializer = WasteOperationSerializer(data=request.data) # из заголовка брать id компании
-#         # serializer.is_valid()
-#         # print(serializer.errors) if serializer.errors else None
-#         # valid_data = serializer.validated_data
-#         # print(valid_data)
-
-#         # for waste in valid_data['wastes']:
-#         #     OrganizationGenerateWasteModel.objects.create(
-#         #         organization=valid_data['organization'].first(),
-#         #         waste_type=waste['waste_type'],
-#         #         value=waste['value']
-#         #     )
-
-#         return Response(status=201)
-    
-
-# class SendWasteAPIView(APIView):
-#         def post(self, request):
-#             serializer = WasteOperationSerializer(data=request.data) # из заголовка брать id компании
-#             serializer.is_valid()
-#             print(serializer.errors) if serializer.errors else None
-#             valid_data = serializer.validated_data
-            
-#             org = valid_data['organization']
-#             wastes = valid_data['wastes']
-#             print('------------------ Serializers requests ------------------')
-
-#             waste_values = {item['waste_type']: item['value'] for item in wastes}
-
-#             print(waste_values)
-            
-#             organization_storages = OrganizationStorage.objects.select_related('storage', 'organization').order_by('interval').filter(organization=1)
-            
-#             for storage in organization_storages:
-#                 storage_wastes = StorageWasteTypeModel.objects.select_related('waste_type').filter(storage=storage.storage)
-#                 for waste in storage_wastes:
-#                     if waste.waste_type in waste_values.keys():
-#                         need_eat = waste_values[waste.waste_type]
-#                         if need_eat > 0:
-#                             eat = need_eat - waste.capacity
-#                             if eat < 0:
-#                                 waste_values[waste.waste_type] = 0
-#                             else:
-#                                 waste_values[waste.waste_type] = eat
-
-#             print(waste_values)
-#             return Response(status=201)
+class OrganizationWasteValuesAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        organization = self.kwargs.get('id')
+        wastes = OrganizationWasteValuesModel.objects.select_related('waste_type').filter(organization=organization)
+        waste_values = {waste.waste_type.id: waste.value for waste in wastes}
+        print(waste_values)
         
-
-    
-# class TotalWasteOrganizationAPIView(APIView):
-#     def get(self, request):
-#         # serializer = OrganizationIDSerializer(data=self.request.data)
-#         # if serializer.is_valid():
-#         #     org = serializer.validated_data.get('organization')
-#         #     queryset = OrganizationGenerateWasteModel.objects\
-#         #         .values('waste_type').annotate(total=Sum('value')).order_by('waste_type').filter(organization=org.first())
-#         #     return Response(queryset)
+        organization_storages = OrganizationStorageModel.objects.select_related('storage', 'organization').order_by('interval').filter(organization=organization)
         
-#         # print(serializer.errors)
-#         return Response('Invalid id.')
+        for storage in organization_storages:
+            storage_wastes = StorageWasteTypeModel.objects.select_related('waste_type').filter(storage=storage.storage)
+            for waste in storage_wastes:
+                if waste.waste_type.id in waste_values.keys():
+                    need_eat = waste_values[waste.waste_type.id]
+                    if need_eat > 0:
+                        eat = need_eat - waste.max_capacity - waste.current_capacity
+                        if eat < 0:
+                            waste_values[waste.waste_type.id] = 0
+                            value = 0
+                        else:
+                            waste_values[waste.waste_type.id] = eat
+                            value = eat
 
-
-
-
-#     # def post(self, request):
-#     #     a = OrganizationGenerateWasteModel.objects.filter(organization=1).values('waste_type').annotate(total=Sum('value')).order_by('waste_type')
-#     #     print(a)
-
-#     #     return Response()
+                        org_value = OrganizationWasteValuesModel.objects.get(organization=organization, waste_type=waste.waste_type)
+                        waste.current_capacity += abs(eat)
+                        waste.save()
+                        org_value.value = value
+                        org_value.save()
+        
+        print(waste_values)
+        return Response(status=201)
