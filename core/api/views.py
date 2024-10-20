@@ -10,7 +10,7 @@ from api.models import OrganizationWasteValuesModel, OrganizationModel, StorageM
 
 from api.serializers import OrgListSerializer, OrgRetrieveSerializer, StorageNameSerializer, StorageListSerializer,\
     WasteTypeListSerializer, WasteTypeNameSerializer, OrgStorageSerializer, OrgStorageIntervalSerializer, \
-    StorageWasteSerializer, OrgCreateUpdateSerializer
+    StorageWasteSerializer, OrgCreateUpdateSerializer, OrgStorageListSerializer, StorageWasteListSerializer
 
 
 #  <--------------- Organization --------------->
@@ -146,19 +146,24 @@ class WasteAPIView(RetrieveUpdateDestroyAPIView):
 #  <--------------- Org & Storage --------------->
 class OrgStorageListAPIView(GenericAPIView):
     queryset = OrganizationStorageModel.objects.all()
-    serializer_class = OrgStorageSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return OrgStorageListSerializer
+        elif self.request.method == 'POST':
+            return OrgStorageSerializer
 
     def get(self, request, *args, **kwargs):
-        org_storages = OrganizationStorageModel.objects.select_related('storage').filter(organization=self.kwargs.get('id'))
-        storage_list = [storage.storage.id for storage in org_storages]
-        return Response(status=status.HTTP_200_OK, data=storage_list)
+        queryset = OrganizationStorageModel.objects.select_related('storage').filter(organization=self.kwargs.get('id'))
+        serializer=self.get_serializer(queryset)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
     
     def post(self, request, *args, **kwargs):
         request.data['organization'] = self.kwargs.get('id')
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-        return Response()
+            return Response(status=status.HTTP_201_CREATED)
 
 
 class OrgStorageAPIView(APIView):
@@ -169,7 +174,7 @@ class OrgStorageAPIView(APIView):
         storage_id = self.kwargs.get('storage_id')
         org_storage = get_object_or_404(OrganizationStorageModel, organization=org_id, storage=storage_id)
         serializer = self.serializer_class(instance=org_storage)
-        return Response(serializer.data)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
     
     def put(self, request, *args, **kwargs):
         org_id = self.kwargs.get('org_id')
@@ -179,32 +184,37 @@ class OrgStorageAPIView(APIView):
         serializer = self.serializer_class(instance=org_storage, data=request.data, partial=True)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-        return Response()
+        return Response(status=status.HTTP_201_CREATED)
     
     def delete(self, request, *args, **kwargs):
         org_id = self.kwargs.get('org_id')
         storage_id = self.kwargs.get('storage_id')
         org_storage = get_object_or_404(OrganizationStorageModel, organization=org_id, storage=storage_id)
         org_storage.delete()
-        return Response()
+        return Response(status=status.HTTP_200_OK)
 
 
 #  <--------------- Storage & Waste --------------->
 class StorageWasteListAPIView(GenericAPIView):
     queryset = OrganizationStorageModel.objects.all()
-    serializer_class = StorageWasteSerializer
+    
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return StorageWasteListSerializer
+        elif self.request.method == 'POST':
+            return StorageWasteSerializer
 
     def get(self, request, *args, **kwargs):
-        storage_wastes = StorageWasteTypeModel.objects.select_related('waste_type').filter(storage=self.kwargs.get('id'))
-        waste_list = [waste.waste_type.id for waste in storage_wastes]
-        return Response(status=status.HTTP_200_OK, data=waste_list)
+        queryset = StorageWasteTypeModel.objects.select_related('waste_type').filter(storage=self.kwargs.get('id'))
+        serializer = self.get_serializer(queryset)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
     
     def post(self, request, *args, **kwargs):
         request.data['storage'] = self.kwargs.get('id')
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=request.data, partial=True)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-        return Response(status=status.HTTP_201_CREATED)
+            return Response(status=status.HTTP_201_CREATED)
 
 
 # class OrgStorageAPIView(APIView):

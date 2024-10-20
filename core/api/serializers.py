@@ -72,6 +72,11 @@ class OrgRetrieveSerializer(serializers.ModelSerializer):
 
 
 #  <--------------- Org Storage --------------->
+class OrgStorageListSerializer(serializers.BaseSerializer):
+    def to_representation(self, instance):
+            return [obj.storage.id for obj in instance]
+    
+
 class OrgStorageSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrganizationStorageModel
@@ -86,10 +91,15 @@ class OrgStorageIntervalSerializer(serializers.ModelSerializer):
 
 
 #  <--------------- Storage Waste --------------->
+class StorageWasteListSerializer(serializers.BaseSerializer):
+    def to_representation(self, instance):
+            return [obj.waste_type.id for obj in instance]
+    
+
 class StorageWasteSerializer(serializers.ModelSerializer):
     class Meta:
         model = StorageWasteTypeModel
-        fields = ['storage', 'waste_type', 'capacity']
+        fields = ['storage', 'waste_type', 'max_capacity']
 
 
 

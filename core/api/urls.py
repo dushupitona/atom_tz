@@ -12,8 +12,8 @@ urlpatterns = [
     path('org/', OrgListAPIView.as_view(), name='org'),
     path('org/<int:id>/', OrgAPIView.as_view(), name='org_object'),
     
-    path('org/<int:id>/storage/', OrgStorageListAPIView.as_view()),
-    path('org/<int:org_id>/storage/<int:storage_id>/', OrgStorageAPIView.as_view()),
+    path('org/<int:id>/storage/', OrgStorageListAPIView.as_view(), name='org_storage'),
+    path('org/<int:org_id>/storage/<int:storage_id>/', OrgStorageAPIView.as_view(), name='org_storage_object'),
 
 
     path('storage/', StorageListAPIView.as_view(), name='storage'),
@@ -22,6 +22,6 @@ urlpatterns = [
     path('waste/', WasteTypeListAPIView.as_view(), name='waste'),
     path('waste/<int:id>/', WasteAPIView.as_view(), name='waste_object'),
 
-    path('storage/<int:id>/waste/', StorageWasteListAPIView.as_view()),
+    path('storage/<int:id>/waste/', StorageWasteListAPIView.as_view(), name='storage_waste'),
     # path('org/<int:org_id>/storage/<int:storage_id>/', OrgStorageAPIView.as_view()),
 ]
