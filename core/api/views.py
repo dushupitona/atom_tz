@@ -286,16 +286,16 @@ class OrganizationWasteValuesAPIView(APIView):
                         if ate <= 0:
                             waste_values[waste.waste_type.id] = 0
                             value = 0
-                            capacity = need_eat
+                            waste.current_capacity += need_eat
+                            waste.save()
                         else:
                             value = abs(ate)
                             print(f'Остаток {value}')
-                            capacity = waste.max_capacity
+                            waste.current_capacity = waste.max_capacity
+                            waste.save()
 
                         waste_values[waste.waste_type.id] = value
                         org_value = OrganizationWasteValuesModel.objects.get(organization=organization, waste_type=waste.waste_type)
-                        waste.current_capacity = capacity
-                        waste.save()
                         org_value.value = value
                         org_value.save()
                 print(f'name: {waste.waste_type.name} | curr: {waste.current_capacity} | max: {waste.max_capacity}')
