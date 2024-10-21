@@ -246,7 +246,7 @@ class StorageWasteAPIView(APIView):
         return Response(status=status.HTTP_200_OK)
     
 
-class OrganizationGenerateAPIView(APIView):
+class OrgGenerateAPIView(APIView):
     serializer_class = OrgWasteValuesSerilaizer
     def post(self, request, *args, **kwargs):
         request.data['organization'] = self.kwargs.get('id')
@@ -258,11 +258,11 @@ class OrganizationGenerateAPIView(APIView):
             if not created:
                 waste_value.value += data['value']
                 waste_value.save()
-            return Response(status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_201_CREATED)
         print(serializer.errors)
 
 
-class OrganizationWasteValuesAPIView(APIView):
+class OrgSendAPIView(APIView):
     def post(self, request, *args, **kwargs):
         organization = self.kwargs.get('id')
         wastes = OrganizationWasteValuesModel.objects.select_related('waste_type').filter(organization=organization)

@@ -2,8 +2,8 @@ from django.urls import path
 
 from api.views import OrgListAPIView, OrgAPIView, StorageListAPIView, StorageAPIView,\
     WasteAPIView, WasteTypeListAPIView, OrgStorageListAPIView, OrgStorageAPIView,\
-    OrgStorageListAPIView, StorageWasteListAPIView, StorageWasteAPIView, OrganizationGenerateAPIView,\
-    OrganizationWasteValuesAPIView, OrganizationWasteValuesAPIView
+    OrgStorageListAPIView, StorageWasteListAPIView, StorageWasteAPIView, OrgGenerateAPIView,\
+    OrgSendAPIView
 
 app_name = 'api'
 
@@ -14,8 +14,8 @@ urlpatterns = [
     path('org/<int:id>/storage/', OrgStorageListAPIView.as_view(), name='org_storage'),
     path('org/<int:org_id>/storage/<int:storage_id>/', OrgStorageAPIView.as_view(), name='org_storage_object'),
 
-    path('org/<int:id>/generate/', OrganizationGenerateAPIView.as_view(), name='org_generate'),
-    path('org/<int:id>/send/', OrganizationWasteValuesAPIView.as_view(), name='org_send'),
+    path('org/<int:id>/generate/', OrgGenerateAPIView.as_view(), name='org_generate'),
+    path('org/<int:id>/send/', OrgSendAPIView.as_view(), name='org_send'),
 
 
     path('storage/', StorageListAPIView.as_view(), name='storage'),

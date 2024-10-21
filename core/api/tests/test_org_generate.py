@@ -1,0 +1,41 @@
+from rest_framework.test import APITestCase
+from rest_framework import status
+from django.urls import reverse_lazy
+
+from api.models import OrganizationModel, WasteTypeModel, OrganizationWasteValuesModel
+
+
+class OrgGenerateAPITestCase(APITestCase):
+    def setUp(self):
+        self.org1 = OrganizationModel.objects.create(name='org1')
+        self.waste1 = WasteTypeModel.objects.create(name='test_waste_1')
+        self.waste2 = WasteTypeModel.objects.create(name='test_waste_2')
+        self.org_waste =OrganizationWasteValuesModel.objects.create(organization=self.org1, waste_type=self.waste2, value=123)
+
+    def test_generate_create(self):
+        url = reverse_lazy('api:org_generate', kwargs={'id': self.org1.id})
+        data = {
+             'organization': self.org1.id,
+             'waste_type': self.waste1.id,
+             'value': 400
+        }
+
+        expected_count = OrganizationWasteValuesModel.objects.count() + 1
+        responce = self.client.post(url, data, format='json')
+
+        self.assertEqual(status.HTTP_201_CREATED, responce.status_code)
+        self.assertEqual(expected_count, OrganizationWasteValuesModel.objects.count())
+
+    def test_generate_update(self):
+        url = reverse_lazy('api:org_generate', kwargs={'id': self.org1.id})
+        data = {
+             'organization': self.org1.id,
+             'waste_type': self.waste2.id,
+             'value': 400
+        }
+
+        expected_count = OrganizationWasteValuesModel.objects.count()
+        responce = self.client.post(url, data, format='json')
+
+        self.assertEqual(status.HTTP_201_CREATED, responce.status_code)
+        self.assertEqual(expected_count, OrganizationWasteValuesModel.objects.count())

@@ -91,8 +91,6 @@ class StorageCapasitiesSerializer(serializers.ModelSerializer):
 
 #  <--------------- Organization Waste Value--------------->
 class OrgWasteValuesSerilaizer(serializers.ModelSerializer):
-    waste = serializers.SerializerMethodField()
-
     class Meta:
         model = OrganizationWasteValuesModel
         fields = ['organization', 'waste_type', 'value']
