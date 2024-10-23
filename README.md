@@ -37,7 +37,10 @@
 > > ```
 > > {
 > >   "name": "org_name",
-> >   "value": "org_value"
+> >   "waste": {
+> >       <waste_id>: <value>,
+> >       ...
+> >   }
 > > }
 > > ```
 >
