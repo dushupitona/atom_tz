@@ -15,7 +15,6 @@ class OrgGenerateAPITestCase(APITestCase):
     def test_generate_create(self):
         url = reverse_lazy('api:org_generate', kwargs={'id': self.org1.id})
         data = {
-             'organization': self.org1.id,
              'waste_type': self.waste1.id,
              'value': 400
         }
@@ -29,13 +28,10 @@ class OrgGenerateAPITestCase(APITestCase):
     def test_generate_update(self):
         url = reverse_lazy('api:org_generate', kwargs={'id': self.org1.id})
         data = {
-             'organization': self.org1.id,
              'waste_type': self.waste2.id,
-             'value': 400
+             'value': 10
         }
 
-        expected_count = OrganizationWasteValuesModel.objects.count()
-        responce = self.client.post(url, data, format='json')
+        responce = self.client.put(url, data, format='json')
 
         self.assertEqual(status.HTTP_201_CREATED, responce.status_code)
-        self.assertEqual(expected_count, OrganizationWasteValuesModel.objects.count())

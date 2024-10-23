@@ -50,7 +50,7 @@ class OrgSendAPITestCase(APITestCase):
         # storage 3
         self.s3_w3.refresh_from_db()
 
-        self.assertEqual(status.HTTP_201_CREATED, responce.status_code)
+        self.assertEqual(status.HTTP_200_OK, responce.status_code)
         # waste 1
         self.assertEqual(self.s2_w1.current_capacity, self.s2_w1.max_capacity)
         self.assertEqual(self.s1_w1.current_capacity, 750)
@@ -61,6 +61,7 @@ class OrgSendAPITestCase(APITestCase):
         self.assertEqual(self.s3_w3.current_capacity, 235)
 
     def test_send_crowded(self):
+        print('----------------------------------------------------------------------')
         url = reverse_lazy('api:org_send', kwargs={'id': self.org1.id})
         self.org_waste3.value = 3000
         self.org_waste3.save()
@@ -72,6 +73,8 @@ class OrgSendAPITestCase(APITestCase):
         self.s1_w3.refresh_from_db()
         self.org_waste3.refresh_from_db()
 
+        self.assertEqual(status.HTTP_200_OK, responce.status_code)
+    
         # waste 3
         self.assertEqual(self.s1_w3.current_capacity, self.s1_w3.max_capacity)
         self.assertEqual(self.s3_w3.current_capacity, self.s3_w3.max_capacity)

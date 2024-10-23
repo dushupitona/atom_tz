@@ -11,7 +11,7 @@ class StorageAPITestCase(APITestCase):
         self.storage1 = StorageModel.objects.create(name='test_storage_1')
         StorageModel.objects.create(name='test_storage_2')
 
-    def test_create_storage_type(self):
+    def test_create_storage(self):
         url = reverse_lazy('api:storage')
         data = {
             'name': 'test_storage'
