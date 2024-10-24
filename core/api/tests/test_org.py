@@ -1,6 +1,7 @@
 from rest_framework.test import APITestCase
 from rest_framework import status
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
+from django.http import Http404
 
 from api.models import OrganizationModel, WasteTypeModel, OrganizationWasteValuesModel
 
@@ -49,6 +50,11 @@ class OrgAPITestCase(APITestCase):
         self.assertEqual(status.HTTP_200_OK, responce.status_code)
         self.assertEqual(expected_data, responce.data)
 
+    def test_negative_get_bad_id(self):
+        url = reverse_lazy('api:org_object', kwargs={'id': 222})
+        responce = self.client.get(url)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, responce.status_code)
+
     def test_update_org_object(self):
         url = reverse_lazy('api:org_object', kwargs={'id': self.org1.id})
         data = {
@@ -59,6 +65,15 @@ class OrgAPITestCase(APITestCase):
         self.assertEqual(status.HTTP_201_CREATED, responce.status_code)
         self.org1.refresh_from_db()
         self.assertEqual(self.org1.name, data['name'])
+
+    def test_negative_updt_bad_id(self):
+        url = reverse_lazy('api:org_object', kwargs={'id': 222})
+        data = {
+             'name': 'new_org_name'
+        }
+        responce = self.client.put(url, data, format='json')
+
+        self.assertEqual(status.HTTP_404_NOT_FOUND, responce.status_code)
 
     def test_delete_org_object(self):
         url = reverse_lazy('api:org_object', kwargs={'id': self.org1.id})

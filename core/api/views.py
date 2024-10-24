@@ -361,10 +361,10 @@ class OrgSendAPIView(APIView):
         waste_values = dict()
 
         for waste in wastes:
-            print(waste.value)
+            # print(waste.value)
             if waste.value != 0:
                 waste_values[waste.waste_type.id] = waste.value
-        print(waste_values)
+        # print(waste_values)
 
         old_waste_values = waste_values
         
@@ -375,20 +375,20 @@ class OrgSendAPIView(APIView):
         if waste_values.values():
             for storage in organization_storages:
                 storage_wastes = StorageWasteTypeModel.objects.select_related('waste_type').filter(storage=storage.storage)
-                print(f'*** Interval: {storage.interval} ***')
-                print(waste_values.values())
+                # print(f'*** Interval: {storage.interval} ***')
+                # print(waste_values.values())
                 if sum(waste_values.values()) != 0:
                     for waste in storage_wastes:
-                        print(f'name: {waste.waste_type.name} | curr: {waste.current_capacity} | max: {waste.max_capacity}')
+                        # print(f'name: {waste.waste_type.name} | curr: {waste.current_capacity} | max: {waste.max_capacity}')
                         waste_capacity = waste.max_capacity - waste.current_capacity
                         if waste.waste_type.id in waste_values.keys() and waste_capacity != 0:
                             distance.setdefault(storage.id, storage.interval)
                             need_eat = waste_values[waste.waste_type.id]
-                            print(f'Need eat: {need_eat}')
+                            # print(f'Need eat: {need_eat}')
                             if need_eat > 0:
-                                print(f'Got: {waste.waste_type.name}')
+                                # print(f'Got: {waste.waste_type.name}')
                                 ate = need_eat - waste_capacity
-                                print(f'Ate: {ate}')
+                                # print(f'Ate: {ate}')
                                 if ate <= 0:
                                     waste_values[waste.waste_type.id] = 0
                                     value = 0
@@ -396,7 +396,7 @@ class OrgSendAPIView(APIView):
                                     waste.save()
                                 else:
                                     value = abs(ate)
-                                    print(f'Остаток {value}')
+                                    # print(f'Остаток {value}')
                                     waste.current_capacity = waste.max_capacity
                                     waste.save()
 
@@ -404,10 +404,10 @@ class OrgSendAPIView(APIView):
                                 org_value = OrganizationWasteValuesModel.objects.get(organization=organization, waste_type=waste.waste_type)
                                 org_value.value = value
                                 org_value.save()
-                        print(f'name: {waste.waste_type.name} | curr: {waste.current_capacity} | max: {waste.max_capacity}')
+                        # print(f'name: {waste.waste_type.name} | curr: {waste.current_capacity} | max: {waste.max_capacity}')
         
-        print(waste_values)
-        print(distance)
+        # print(waste_values)
+        # print(distance)
 
         # if not sum(distance.values()):
         #     print('d')
