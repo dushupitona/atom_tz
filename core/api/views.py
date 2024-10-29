@@ -201,20 +201,22 @@ class OrgStorageListAPIView(GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         queryset = OrganizationStorageModel.objects.select_related('storage').filter(organization=self.kwargs.get('id'))
-        serializer=self.get_serializer(queryset)
-        return Response(status=status.HTTP_200_OK, data=serializer.data)
+        if queryset:
+            serializer=self.get_serializer(queryset)
+            return Response(status=status.HTTP_200_OK, data=serializer.data)
+        else:
+            return Response({'detail': 'Организация не найдена.'}, status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request, *args, **kwargs):
         try:
-            request.data['organization'] = self.kwargs.get('id')
-            serializer = self.get_serializer(data=request.data)
+            data = request.data.copy()
+            data['organization'] = self.kwargs.get('id')
+            serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(status=status.HTTP_201_CREATED)
         except serializers.ValidationError as e:
             return Response({'errors': e.detail}, status=status.HTTP_400_BAD_REQUEST)
-        except Http404:
-            return Response({'detail': 'Организация не найдена.'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class OrgStorageAPIView(APIView):
@@ -228,7 +230,7 @@ class OrgStorageAPIView(APIView):
             serializer = self.serializer_class(instance=org_storage)
             return Response(status=status.HTTP_200_OK, data=serializer.data)
         except Http404:
-            return Response({'detail': 'Организация не найдена.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Объект не найден.'}, status=status.HTTP_404_NOT_FOUND)
     
     def put(self, request, *args, **kwargs):
         try:
@@ -267,8 +269,11 @@ class StorageWasteListAPIView(GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         queryset = StorageWasteTypeModel.objects.select_related('waste_type').filter(storage=self.kwargs.get('id'))
-        serializer = self.get_serializer(queryset)
-        return Response(status=status.HTTP_200_OK, data=serializer.data)
+        if queryset:
+            serializer = self.get_serializer(queryset)
+            return Response(status=status.HTTP_200_OK, data=serializer.data)
+        else:
+            return Response({'detail': 'Организация не найдена.'}, status=status.HTTP_404_NOT_FOUND)
     
     def post(self, request, *args, **kwargs):
         try:

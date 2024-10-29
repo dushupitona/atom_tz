@@ -23,6 +23,11 @@ class OrgStorageAPITestCase(APITestCase):
         self.assertEqual(status.HTTP_200_OK, responce.status_code)
         self.assertEqual(expected_data, responce.data)
 
+    def test_get_bad_id(self):
+        url = reverse_lazy('api:org_storage', kwargs={'id': 222})
+        responce = self.client.get(url)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, responce.status_code)
+
     def test_post(self):
         url = reverse_lazy('api:org_storage', kwargs={'id': self.org1.id})
         data = {
@@ -35,6 +40,15 @@ class OrgStorageAPITestCase(APITestCase):
 
         self.assertEqual(status.HTTP_201_CREATED, responce.status_code)
         self.assertEqual(expected_count, OrganizationStorageModel.objects.count())
+
+    def test_post_bad_id(self):
+        url = reverse_lazy('api:org_storage', kwargs={'id': 222})
+        data = {
+            'storage': self.storage3.id,
+            'interval': 122
+        }
+        responce = self.client.post(url, data=data)
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, responce.status_code)
 
 #  <--------------- Org & Storage object --------------->
     def test_get_object(self):

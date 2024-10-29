@@ -23,6 +23,11 @@ class StorageWasteAPITestCase(APITestCase):
         self.assertEqual(status.HTTP_200_OK, responce.status_code)
         self.assertEqual(expected_data, responce.data)
 
+    def test_negative_get_bad_id(self):
+        url = reverse_lazy('api:storage_waste', kwargs={'id': 222})
+        responce = self.client.get(url)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, responce.status_code)
+
     def test_post(self):
         url = reverse_lazy('api:storage_waste', kwargs={'id': self.storage1.id})
         data = {
