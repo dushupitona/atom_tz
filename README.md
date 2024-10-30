@@ -135,7 +135,8 @@
 > > - Тело запроса:
 > > ```
 > > {
-> >   "max_capacity": 10000
+> >   "max_capacity": 10000,
+> >   "current_capacity": 0
 > > }
 > > ```
 > 
