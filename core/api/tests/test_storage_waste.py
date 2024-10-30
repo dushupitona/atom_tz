@@ -80,7 +80,8 @@ class StorageWasteAPITestCase(APITestCase):
         storage_waste = StorageWasteTypeModel.objects.get(storage=self.storage1, waste_type=self.waste1)
         expected_data = {
              'max_capacity': storage_waste.max_capacity,
-             'current_capacity': storage_waste.current_capacity
+             'current_capacity': storage_waste.current_capacity,
+             'remaining_capacity': storage_waste.max_capacity - storage_waste.current_capacity
         }
 
         self.assertEqual(status.HTTP_200_OK, responce.status_code)

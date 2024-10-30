@@ -84,9 +84,14 @@ class StorageWasteSerializer(serializers.ModelSerializer):
 
 
 class StorageCapasitiesSerializer(serializers.ModelSerializer):
+    remaining_capacity = serializers.SerializerMethodField()
+
     class Meta:
         model = StorageWasteTypeModel
-        fields = ['max_capacity', 'current_capacity']
+        fields = ['max_capacity', 'current_capacity', 'remaining_capacity']
+
+    def get_remaining_capacity(self, obj):
+        return obj.max_capacity - obj.current_capacity
 
 
 #  <--------------- Organization Waste Value--------------->
