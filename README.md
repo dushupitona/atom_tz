@@ -102,7 +102,7 @@
 > > ```
 > > {
 > >   "waste": <waste_id>,
-> >   "max_capacity": 7000,
+> >   "max_capacity": 7000
 > > }
 > > ```
 >
@@ -202,7 +202,7 @@
 > > ```
 > > {
 > >   "storage": <storage_id>,
-> >   "interval": 1250,
+> >   "interval": 1250
 > > }
 > > ```
 >
@@ -275,7 +275,7 @@
 > >   "storage_responses": {
 > >     "1": "completely",
 > >     "2": "partially",
-> >     "3": "crowded"
+> >     "3": "crowded",
 > >     "4": "no_storage"
 > >   },
 > >   "total_distance": 1750
