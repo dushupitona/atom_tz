@@ -249,7 +249,7 @@
 > > - Тело запроса:
 > > ```
 > > {
-> >   "waste": <waste_id>,
+> >   "waste_type": <waste_id>,
 > >   "value": 400
 > > }
 > > ```
@@ -260,7 +260,7 @@
 > > - Тело запроса:
 > > ```
 > > {
-> >   "waste": <waste_id>,
+> >   "waste_type": <waste_id>,
 > >   "value": 0
 > > }
 > > ```
