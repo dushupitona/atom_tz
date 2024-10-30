@@ -230,7 +230,7 @@ class OrgStorageAPIView(APIView):
             serializer = self.serializer_class(instance=org_storage)
             return Response(status=status.HTTP_200_OK, data=serializer.data)
         except Http404:
-            return Response({'detail': 'Объект не найден.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Неверный объект организации или хранилища.'}, status=status.HTTP_404_NOT_FOUND)
     
     def put(self, request, *args, **kwargs):
         try:
@@ -244,7 +244,7 @@ class OrgStorageAPIView(APIView):
         except serializers.ValidationError as e:
             return Response({'errors': e.detail}, status=status.HTTP_400_BAD_REQUEST)
         except Http404:
-            return Response({'detail': 'Организация не найдена.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Неверный объект организации или хранилища.'}, status=status.HTTP_404_NOT_FOUND)
     
     def delete(self, request, *args, **kwargs):
         try:
@@ -254,7 +254,7 @@ class OrgStorageAPIView(APIView):
             org_storage.delete()
             return Response(status=status.HTTP_200_OK)
         except Http404:
-            return Response({'detail': 'Организация не найдена.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Неверный объект организации или хранилища.'}, status=status.HTTP_404_NOT_FOUND)
 
 
 #  <--------------- Storage & Waste --------------->
