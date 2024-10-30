@@ -175,7 +175,8 @@
 > > ```
 > > {
 > >   "max_capacity": 7000,
-> >   "current_capacity": 0
+> >   "current_capacity": 500,
+> >   "remaining_capacity": 6500
 > > }
 > > ```
 >
