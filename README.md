@@ -101,7 +101,7 @@
 > > - Тело запроса:
 > > ```
 > > {
-> >   "waste": <waste_id>,
+> >   "waste_type": <waste_id>,
 > >   "max_capacity": 7000
 > > }
 > > ```
