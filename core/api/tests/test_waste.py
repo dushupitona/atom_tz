@@ -65,7 +65,6 @@ class WasteAPITestCase(APITestCase):
 
         self.assertEqual(status.HTTP_404_NOT_FOUND, responce.status_code)
 
-
     def test_delete_waste_object(self):
         url = reverse_lazy('api:waste_object', kwargs={'id': self.waste1.id})
         responce = self.client.delete(url)

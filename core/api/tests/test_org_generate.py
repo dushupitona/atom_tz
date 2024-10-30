@@ -25,6 +25,34 @@ class OrgGenerateAPITestCase(APITestCase):
         self.assertEqual(status.HTTP_201_CREATED, responce.status_code)
         self.assertEqual(expected_count, OrganizationWasteValuesModel.objects.count())
 
+    def test_generate_create_bad_id(self):
+        url = reverse_lazy('api:org_generate', kwargs={'id': 222})
+        data = {
+             'waste_type': self.waste1.id,
+             'value': 400
+        }
+
+        responce = self.client.post(url, data, format='json')
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, responce.status_code)
+
+    def test_generate_create_bad_data(self):
+        url = reverse_lazy('api:org_generate', kwargs={'id': self.org1.id})
+        data = {
+             'waste_type': 4444,
+             'value': 400
+        }
+
+        responce = self.client.post(url, data, format='json')
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, responce.status_code)
+
+        data = {
+             'waste_type': self.waste1.id,
+             'value': 'qweqew12'
+        }
+
+        responce = self.client.post(url, data, format='json')
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, responce.status_code)
+
     def test_generate_update(self):
         url = reverse_lazy('api:org_generate', kwargs={'id': self.org1.id})
         data = {
@@ -35,3 +63,31 @@ class OrgGenerateAPITestCase(APITestCase):
         responce = self.client.put(url, data, format='json')
 
         self.assertEqual(status.HTTP_201_CREATED, responce.status_code)
+
+    def test_update_bad_id(self):
+        url = reverse_lazy('api:org_generate', kwargs={'id': 555})
+        data = {
+             'waste_type': self.waste2.id,
+             'value': 10
+        }
+
+        responce = self.client.put(url, data, format='json')
+        self.assertEqual(status.HTTP_404_NOT_FOUND, responce.status_code)
+
+    def test_generate_update_bad_data(self):
+        url = reverse_lazy('api:org_generate', kwargs={'id': self.org1.id})
+        data = {
+             'waste_type': 4444,
+             'value': 400
+        }
+
+        responce = self.client.post(url, data, format='json')
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, responce.status_code)
+
+        data = {
+             'waste_type': self.waste1.id,
+             'value': 'qweqew12'
+        }
+
+        responce = self.client.post(url, data, format='json')
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, responce.status_code)

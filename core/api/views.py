@@ -277,8 +277,9 @@ class StorageWasteListAPIView(GenericAPIView):
     
     def post(self, request, *args, **kwargs):
         try:
-            request.data['storage'] = self.kwargs.get('id')
-            serializer = self.get_serializer(data=request.data, partial=True)
+            data = request.data.copy()
+            data['storage'] = self.kwargs.get('id')
+            serializer = self.get_serializer(data=data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(status=status.HTTP_201_CREATED)

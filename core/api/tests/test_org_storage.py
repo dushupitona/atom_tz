@@ -50,6 +50,15 @@ class OrgStorageAPITestCase(APITestCase):
         responce = self.client.post(url, data=data)
         self.assertEqual(status.HTTP_400_BAD_REQUEST, responce.status_code)
 
+    def test_post_bad_data(self):
+        url = reverse_lazy('api:org_storage', kwargs={'id': self.org1.id})
+        data = {
+            'storage': 243,
+            'interval': 122
+        }
+        responce = self.client.post(url, data=data)
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, responce.status_code)
+
 #  <--------------- Org & Storage object --------------->
     def test_get_object(self):
         url = reverse_lazy('api:org_storage_object', kwargs={
@@ -62,6 +71,20 @@ class OrgStorageAPITestCase(APITestCase):
 
         self.assertEqual(status.HTTP_200_OK, responce.status_code)
         self.assertEqual(expected_data, responce.data)
+
+    def test_get_bad_object_id(self):
+        url = reverse_lazy('api:org_storage_object', kwargs={
+            'org_id': 222,
+            'storage_id': self.storage3.id
+        })
+        responce = self.client.get(url)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, responce.status_code)
+        url = reverse_lazy('api:org_storage_object', kwargs={
+            'org_id': self.org1.id,
+            'storage_id': 222
+        })
+        responce = self.client.get(url)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, responce.status_code)
 
     def test_put_object(self):
         url = reverse_lazy('api:org_storage_object', kwargs={
@@ -79,13 +102,54 @@ class OrgStorageAPITestCase(APITestCase):
         self.org_storage1.refresh_from_db()
         self.assertEqual(self.org_storage1.interval, data['interval'])
 
-    def test_delete_object(self):
+    def test_put_bad_object_id(self):
+        url = reverse_lazy('api:org_storage_object', kwargs={
+            'org_id': 222,
+            'storage_id': self.storage3.id
+        })
+        responce = self.client.put(url)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, responce.status_code)
+        url = reverse_lazy('api:org_storage_object', kwargs={
+            'org_id': self.org1.id,
+            'storage_id': 222
+        })
+        responce = self.client.put(url)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, responce.status_code)
+
+    def test_put_bad_object_data(self):
         url = reverse_lazy('api:org_storage_object', kwargs={
              'org_id': self.org1.id,
              'storage_id': self.storage1.id
+        })
+
+        data = {
+             'interval': 'qwesda'
+        }
+
+        responce = self.client.put(url, data, format='json')
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, responce.status_code)
+
+    def test_delete_object(self):
+        url = reverse_lazy('api:org_storage_object', kwargs={
+            'org_id': self.org1.id,
+            'storage_id': self.storage1.id
         })
 
         responce = self.client.delete(url)
 
         self.assertEqual(status.HTTP_200_OK, responce.status_code)
         self.assertFalse(OrganizationStorageModel.objects.filter(organization=self.org1.id, storage=self.storage1.id).exists())
+
+    def test_delete_bad_object_id(self):
+        url = reverse_lazy('api:org_storage_object', kwargs={
+            'org_id': 222,
+            'storage_id': self.storage3.id
+        })
+        responce = self.client.delete(url)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, responce.status_code)
+        url = reverse_lazy('api:org_storage_object', kwargs={
+            'org_id': self.org1.id,
+            'storage_id': 222
+        })
+        responce = self.client.delete(url)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, responce.status_code)
