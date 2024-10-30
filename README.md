@@ -7,7 +7,7 @@
 > > - Тело запроса:
 > > ```
 > > {
-> >   "name": "org_name"
+> >   "name": "waste_type_name"
 > > }
 > > ```
 > 
