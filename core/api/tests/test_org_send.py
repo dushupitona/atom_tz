@@ -14,8 +14,8 @@ class OrgSendAPITestCase(APITestCase):
         self.storage3= StorageModel.objects.create(name='org3')
 
         OrganizationStorageModel.objects.create(organization=self.org1, storage=self.storage1, interval=2000)
-        OrganizationStorageModel.objects.create(organization=self.org1, storage=self.storage2, interval=1500)
-        OrganizationStorageModel.objects.create(organization=self.org1, storage=self.storage3, interval=2300)
+        self.org_s2 = OrganizationStorageModel.objects.create(organization=self.org1, storage=self.storage2, interval=1500)
+        self.org_s3 = OrganizationStorageModel.objects.create(organization=self.org1, storage=self.storage3, interval=2300)
 
         self.waste1 = WasteTypeModel.objects.create(name='bio')
         self.waste2 = WasteTypeModel.objects.create(name='glass')
@@ -50,7 +50,7 @@ class OrgSendAPITestCase(APITestCase):
         # storage 3
         self.s3_w3.refresh_from_db()
 
-        self.assertEqual(status.HTTP_200_OK, responce.status_code)
+        self.assertEqual(status.HTTP_207_MULTI_STATUS, responce.status_code)
         # waste 1
         self.assertEqual(self.s2_w1.current_capacity, self.s2_w1.max_capacity)
         self.assertEqual(self.s1_w1.current_capacity, 750)
@@ -60,8 +60,7 @@ class OrgSendAPITestCase(APITestCase):
         self.assertEqual(self.s1_w3.current_capacity, self.s1_w3.max_capacity)
         self.assertEqual(self.s3_w3.current_capacity, 235)
 
-    def test_send_crowded(self):
-        print('----------------------------------------------------------------------')
+    def test_send_crowded_after(self):
         url = reverse_lazy('api:org_send', kwargs={'id': self.org1.id})
         self.org_waste3.value = 3000
         self.org_waste3.save()
@@ -73,10 +72,72 @@ class OrgSendAPITestCase(APITestCase):
         self.s1_w3.refresh_from_db()
         self.org_waste3.refresh_from_db()
 
-        self.assertEqual(status.HTTP_200_OK, responce.status_code)
+        self.assertEqual(status.HTTP_207_MULTI_STATUS, responce.status_code)
     
         # waste 3
         self.assertEqual(self.s1_w3.current_capacity, self.s1_w3.max_capacity)
         self.assertEqual(self.s3_w3.current_capacity, self.s3_w3.max_capacity)
         self.assertEqual(self.org_waste3.value, 1235)
 
+    def test_send_crowded_before(self):
+        url = reverse_lazy('api:org_send', kwargs={'id': self.org1.id})
+        self.s1_w2.current_capacity =  self.s1_w2.max_capacity
+        self.s2_w2.current_capacity =  self.s2_w2.max_capacity
+        self.s1_w2.save()
+        self.s2_w2.save()
+
+        self.s1_w2.refresh_from_db()
+        self.s2_w2.refresh_from_db()
+
+        responce = self.client.post(url)
+
+        self.assertEqual(status.HTTP_207_MULTI_STATUS, responce.status_code)
+        self.assertEqual(responce.data['storage_responses'][self.waste1.id], 'completely')
+        self.assertEqual(responce.data['storage_responses'][self.waste2.id], 'crowded')
+        self.assertEqual(responce.data['storage_responses'][self.waste3.id], 'completely')
+
+    def test_send_responce_check1(self):
+        url = reverse_lazy('api:org_send', kwargs={'id': self.org1.id})
+        self.storage1.delete()
+
+        responce = self.client.post(url)
+
+        self.assertEqual(status.HTTP_207_MULTI_STATUS, responce.status_code)
+        self.assertEqual(responce.data['total_distance'], self.org_s2.interval + self.org_s3.interval)
+        self.assertEqual(responce.data['storage_responses'][self.waste1.id], 'partially')
+        self.assertEqual(responce.data['storage_responses'][self.waste2.id], 'completely')
+        self.assertEqual(responce.data['storage_responses'][self.waste3.id], 'completely')
+
+
+    def test_send_responce_check2(self):
+        url = reverse_lazy('api:org_send', kwargs={'id': self.org1.id})
+        self.storage1.delete()
+        self.storage2.delete()
+
+        responce = self.client.post(url)
+
+        self.assertEqual(status.HTTP_207_MULTI_STATUS, responce.status_code)
+        self.assertEqual(responce.data['total_distance'], self.org_s3.interval)
+        self.assertEqual(responce.data['storage_responses'][self.waste1.id], 'no_storage')
+        self.assertEqual(responce.data['storage_responses'][self.waste2.id], 'no_storage')
+        self.assertEqual(responce.data['storage_responses'][self.waste3.id], 'completely')
+
+    def test_send_bad_no_wastes(self):
+        url = reverse_lazy('api:org_send', kwargs={'id': self.org1.id})
+        self.waste1.delete()
+        self.waste2.delete()
+        self.waste3.delete()
+
+        responce = self.client.post(url)
+
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, responce.status_code)
+
+    def test_send_bad_no_storages(self):
+        url = reverse_lazy('api:org_send', kwargs={'id': self.org1.id})
+        self.storage1.delete()
+        self.storage2.delete()
+        self.storage3.delete()
+
+        responce = self.client.post(url)
+
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, responce.status_code)

@@ -367,56 +367,61 @@ class OrgSendAPIView(APIView):
         waste_values = dict()
 
         for waste in wastes:
-            # print(waste.value)
             if waste.value != 0:
                 waste_values[waste.waste_type.id] = waste.value
-        # print(waste_values)
 
-        old_waste_values = waste_values
+        if not waste_values.values():
+            return Response({'detail': 'Нет отходов для переработки.'}, status=status.HTTP_400_BAD_REQUEST)
         
         organization_storages = OrganizationStorageModel.objects.select_related('storage', 'organization').order_by('interval').filter(organization=organization)
-        
+
+        if not organization_storages.values():
+            return Response({'detail': 'У данной организации нет хранилищей для перерпботки.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        old_waste_values = waste_values.copy()
+        waste_set = set()
         distance = {}
 
-        if waste_values.values():
-            for storage in organization_storages:
-                storage_wastes = StorageWasteTypeModel.objects.select_related('waste_type').filter(storage=storage.storage)
-                # print(f'*** Interval: {storage.interval} ***')
-                # print(waste_values.values())
-                if sum(waste_values.values()) != 0:
-                    for waste in storage_wastes:
-                        # print(f'name: {waste.waste_type.name} | curr: {waste.current_capacity} | max: {waste.max_capacity}')
-                        waste_capacity = waste.max_capacity - waste.current_capacity
-                        if waste.waste_type.id in waste_values.keys() and waste_capacity != 0:
-                            distance.setdefault(storage.id, storage.interval)
-                            need_eat = waste_values[waste.waste_type.id]
-                            # print(f'Need eat: {need_eat}')
-                            if need_eat > 0:
-                                # print(f'Got: {waste.waste_type.name}')
-                                ate = need_eat - waste_capacity
-                                # print(f'Ate: {ate}')
-                                if ate <= 0:
-                                    waste_values[waste.waste_type.id] = 0
-                                    value = 0
-                                    waste.current_capacity += need_eat
-                                    waste.save()
-                                else:
-                                    value = abs(ate)
-                                    # print(f'Остаток {value}')
-                                    waste.current_capacity = waste.max_capacity
-                                    waste.save()
+        for storage in organization_storages:
+            storage_wastes = StorageWasteTypeModel.objects.select_related('waste_type').filter(storage=storage.storage)
+            if sum(waste_values.values()) != 0:
+                for waste in storage_wastes:
+                    waste_set.add(waste.waste_type.id)
+                    waste_capacity = waste.max_capacity - waste.current_capacity
+                    if waste.waste_type.id in waste_values.keys() and waste_capacity != 0:
+                        distance.setdefault(storage.id, storage.interval)
+                        need_eat = waste_values[waste.waste_type.id]
+                        if need_eat > 0:
+                            ate = need_eat - waste_capacity
+                            if ate <= 0:
+                                waste_values[waste.waste_type.id] = 0
+                                value = 0
+                                waste.current_capacity += need_eat
+                                waste.save()
+                            else:
+                                value = abs(ate)
+                                waste.current_capacity = waste.max_capacity
+                                waste.save()
+                            waste_values[waste.waste_type.id] = value
+                            org_value = OrganizationWasteValuesModel.objects.get(organization=organization, waste_type=waste.waste_type)
+                            org_value.value = value
+                            org_value.save()
 
-                                waste_values[waste.waste_type.id] = value
-                                org_value = OrganizationWasteValuesModel.objects.get(organization=organization, waste_type=waste.waste_type)
-                                org_value.value = value
-                                org_value.save()
-                        # print(f'name: {waste.waste_type.name} | curr: {waste.current_capacity} | max: {waste.max_capacity}')
-        
-        # print(waste_values)
-        # print(distance)
+        responce_dict = {
+            'storage_responses': {},
+            'total_distance': sum(distance.values())
+        }
 
-        # if not sum(distance.values()):
-        #     print('d')
-        #     # return Response(status=200, data='')
+        for key, value in old_waste_values.items():
+            if waste_values[key] != value:
+                if waste_values[key] == 0:
+                    responce_dict['storage_responses'][key] = 'completely'
+                else:
+                    responce_dict['storage_responses'][key] = 'partially'
+            else:
+                if waste_values[key] != 0 and key not in waste_set:
+                    responce_dict['storage_responses'][key] = 'no_storage'
+                else:
+                    responce_dict['storage_responses'][key] = 'crowded'
 
-        return Response(status=status.HTTP_200_OK)
+        return Response(responce_dict, status=status.HTTP_207_MULTI_STATUS)
