@@ -40,10 +40,18 @@
 > - 3: Plastic
 >
 > ***Хранилища:***
-> - 1: Storage 1
+> - 1: Storage 1 \
+>   *Обрабатываемые виды отходов:*
+>   - Bio | *max_capacity:* 1000
+>   - Glass | 500
+>   - Plastic | 300
 > - 2: Storage 2
+>   - Bio | 460
+>   - Glass | 700
 > - 3: Storage 3
+>   - Glass | 1300
 > - 4: Storage 4
+>   - Plastic | 2500
 >
 > ***Организации:***
 > - 1: Organization 1
