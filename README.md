@@ -54,8 +54,26 @@
 >   - Plastic | 2500
 >
 > ***Организации:***
-> - 1: Organization 1
+> - 1: Organization 1 \
+>   *Подключенные хранилища:*
+>   - Storage 1 | *interval:* 5040
+>   - Storage 2 | 2000
+>   - Storage 3 | 3500
 > - 2: Organization 2
+>   - Storage 1 | 700
+>   - Storage 2 | 4000
+>   - Storage 4 | 1490
+>
+> ***Отходы организаций:***
+> - 1: Organization 1 \
+>   *Отходы:*
+>   - Bio | *value:* 1100
+>   - Glass | 1500
+>   - Plastic | 800
+> - 2: Organization 2
+>   - Bio | 300
+>   - Glass | 1150
+>   - Plastic | 2700
 > 
 > ## API ##
 >
