@@ -19,6 +19,7 @@ services:
     command: >
       sh -c " python manage.py makemigrations &&
               python manage.py migrate &&
-              python manage.py loaddata /app/fixtures/admin.json &&
               python manage.py test &&
+              python manage.py loaddata /app/fixtures/admin.json &&
+              python manage.py loaddata /app/fixtures/data.json &&
               python manage.py runserver 0.0.0.0:8000"
